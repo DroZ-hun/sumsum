@@ -26,6 +26,7 @@ typedef enum
 	UNIT_SIZE = 10, // zászlóalj mérete
 	UNIT_MARCHING_TIME = 1000,	// egy egységnyi út megtételéhez szükséges idő ms-ben
 	PEASANT_WARRIOR_RATIO = 3, // haderő számításához, egy katona hány paraszttal ér fel
+	SEC_TO_MS = 1000,
 
 	MAIN_MENU_WIDTH = 250, // főmenü szélessége pixelben
 	MAIN_MENU_Y = 315, // főmenü függőleges elhelyezkedése
@@ -109,7 +110,8 @@ typedef enum
 
 	DIFFICULTY_EASY = 20,
 	DIFFICULTY_NORMAL = 50,
-	DIFFICULTY_HARD = 85
+	DIFFICULTY_HARD = 85,
+	DIFFICULTY_EXTREME = 100
 } MainMenuDifficulty;
 typedef enum
 {	// főmenü-beli választható térképméret

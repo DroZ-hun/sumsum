@@ -461,7 +461,16 @@ void STATE_PLAYING_LOOP()
 	for (t_it = Match.TOWNS->NEXT; t_it != NULL; t_it = t_it->NEXT)
 	{
 		if (t_it->Color != Match.PlayerColor)
-			AI(t_it);
+		{
+			if (Match.Difficulty == DIFFICULTY_EXTREME || t_it->Color == RED)
+			{
+				AIExtreme(t_it);
+			}
+			else
+			{
+				AI(t_it);
+			}
+		}
 	}
 
 
