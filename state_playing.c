@@ -37,8 +37,9 @@ void STATE_PLAYING_INIT()
 	Coord MAP_MAX;
 	MAP_MAX.X = MAP_MAX.Y = MainMenu.MapSize;
 
-	int i, invalid, tries;
-	for (i = 0; i < Match.NumberOfEnemies + 1; i++)
+	int town_idx, enemy_town_count, invalid, tries;
+	enemy_town_count = 0;
+	for (town_idx = 0; town_idx < Match.NumberOfEnemies + 1; ++town_idx)
 	{
 		this = (Town*)malloc(sizeof(Town));
 		this->peasants = Match.STARTING_PEASANTS;
@@ -81,7 +82,7 @@ void STATE_PLAYING_INIT()
 		{
 			invalid = 0; // feltételezem, hogy jó színt fog generálni
 
-			if (NOCOLOR != Match.PlayerColor && i == Match.NumberOfEnemies / 2) // ha pont a "középsőedik" falut hoztam létre, akkor az legyen a játékos faluja
+			if (NOCOLOR != Match.PlayerColor && town_idx == Match.NumberOfEnemies / 2) // ha pont a "középsőedik" falut hoztam létre, akkor az legyen a játékos faluja
 			{
 				this->Color = Match.PlayerColor;
 				Match.SelectedTown = this;
@@ -90,6 +91,26 @@ void STATE_PLAYING_INIT()
 			{
 				//  különben random szín
 				this->Color = rand() % 8;
+
+				// kivéve extrém nehézségnél, ott fixen Ultimate MI-nek lenni kell,
+				// illetve Harcos és Agresszív Harcos MI sem lenne rossz.
+				if (Match.Difficulty == DIFFICULTY_EXTREME)
+				{
+					switch(enemy_town_count)
+					{
+						case 0:
+							this->Color = GetExtremeDifficultyColor(AI_ULTIMATE);
+							break;
+						case 1:
+							// Piros a legerőssebb ő mindenéppen legyen kiválasztva.
+							this->Color = GetExtremeDifficultyColor(AI_WARRIOR);
+							break;
+						case 2:
+							this->Color = GetExtremeDifficultyColor(AI_AGGRESSIVE_WARRIOR);
+							break;
+						// hagyjuk a randomot ha egyik sem.
+					}
+				}
 
 				if (this->Color == Match.PlayerColor)
 				{
@@ -110,8 +131,12 @@ void STATE_PLAYING_INIT()
 
 		} while (invalid);
 
-		//this->Color = i;
+		//this->Color = town_idx;
 
+		if (this->Color != Match.PlayerColor)
+		{
+			++enemy_town_count;
+		}
 		Match.LAST_TOWN->NEXT = this;
 		Match.LAST_TOWN = this;
 	}
@@ -462,9 +487,17 @@ void STATE_PLAYING_LOOP()
 	{
 		if (t_it->Color != Match.PlayerColor)
 		{
-			if (Match.Difficulty == DIFFICULTY_EXTREME || t_it->Color == RED)
+			if (Match.Difficulty == DIFFICULTY_EXTREME && t_it->Color == GetExtremeDifficultyColor(AI_ULTIMATE))
 			{
 				AIExtreme(t_it);
+			}
+			else if (Match.Difficulty == DIFFICULTY_EXTREME && t_it->Color == GetExtremeDifficultyColor(AI_WARRIOR))
+			{
+				AIExtremeWarrior(t_it, 0);
+			}
+			else if (Match.Difficulty == DIFFICULTY_EXTREME && t_it->Color == GetExtremeDifficultyColor(AI_AGGRESSIVE_WARRIOR))
+			{
+				AIExtremeWarrior(t_it, 1);
 			}
 			else
 			{

@@ -15,6 +15,7 @@ int CheckPlayerDefeat();
 void AI(Town *this);
 
 void AIExtreme(Town *this);
+void AIExtremeWarrior(Town *this, int is_aggressive_AI);
 
 void TTF_RenderText_Outline(SDL_Surface *dst, char *string, TTF_Font *font, int X, int Y, SDL_Color Ctxt, SDL_Color Cout);
 

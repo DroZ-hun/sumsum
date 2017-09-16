@@ -1,4 +1,5 @@
 #include <SDL/SDL_image.h>
+#include <assert.h>
 #include "globals.h"
 
 KeysDown KeyDown;
@@ -37,6 +38,55 @@ int randmax(int number)
 	// Csak a biztonság kedvéért ellenőrizzük az intervallumot.
 	return (random >= 0 && random < number) ? random : 0;
 }
+
+const char* DifficultyToText(int difficulty)
+{
+	switch(difficulty)
+	{
+		case DIFFICULTY_EXTREME:
+			return "< extreme >";
+			break;
+		case DIFFICULTY_HARD:
+			return "< hard >";
+			break;
+		case DIFFICULTY_NORMAL:
+			return "< normal >";
+			break;
+		default:
+			return "< easy >";
+	}
+}
+
+Color GetExtremeDifficultyColor(ExtremeAi extremeAi)
+{
+	switch(extremeAi)
+	{
+		case AI_ULTIMATE:
+			if (Match.PlayerColor == BLUE)
+			{
+				return RED;
+			}
+			return BLUE;
+			break;
+		case AI_WARRIOR:
+			if (Match.PlayerColor == WHITE)
+			{
+				return PINK;
+			}
+			return WHITE;
+			break;
+		case AI_AGGRESSIVE_WARRIOR:
+			if (Match.PlayerColor == BLACK)
+			{
+				return PURPLE;
+			}
+			return BLACK;
+			break;
+		default:
+			assert(0);
+	}
+}
+
 
 SDL_Surface *IMG_Load_Optimized(char *filename)
 {

@@ -129,9 +129,8 @@ void STATE_MAIN_MENU_LOOP()
 	rect.y += 20;
 	SDL_BlitSurface(text, NULL, Application.Output, &rect);
 	SDL_FreeSurface(text);
-
 		// választott érték
-		text = TTF_RenderText_Solid(Application.FONT, MainMenu.Difficulty == DIFFICULTY_EASY ? "< easy >" : (MainMenu.Difficulty == DIFFICULTY_NORMAL ? "< normal >" : "< hard >"), MainMenu.State == STATE_MAIN_MENU_DIFFICULTY ? TextColor.GOLD : TextColor.LIGHT_GRAY);
+		text = TTF_RenderText_Solid(Application.FONT, DifficultyToText(MainMenu.Difficulty), MainMenu.State == STATE_MAIN_MENU_DIFFICULTY ? TextColor.GOLD : TextColor.LIGHT_GRAY);
 		rect.x = Application.Output->w / 2 + MAIN_MENU_WIDTH / 2 - text->w;
 		SDL_BlitSurface(text, NULL, Application.Output, &rect);
 		SDL_FreeSurface(text);
@@ -275,6 +274,9 @@ void STATE_MAIN_MENU_LOOP()
 
 								if (MainMenu.Difficulty == DIFFICULTY_HARD)
 									MainMenu.Difficulty = DIFFICULTY_NORMAL;
+
+								if (MainMenu.Difficulty == DIFFICULTY_EXTREME)
+									MainMenu.Difficulty = DIFFICULTY_HARD;
 							break;
 
 							case STATE_MAIN_MENU_MAP_SIZE:
@@ -311,6 +313,9 @@ void STATE_MAIN_MENU_LOOP()
 							break;
 
 							case STATE_MAIN_MENU_DIFFICULTY:
+								if (MainMenu.Difficulty == DIFFICULTY_HARD)
+									MainMenu.Difficulty = DIFFICULTY_EXTREME;
+
 								if (MainMenu.Difficulty == DIFFICULTY_NORMAL)
 									MainMenu.Difficulty = DIFFICULTY_HARD;
 

@@ -64,6 +64,11 @@ typedef enum
 	RED, YELLOW, GREEN, BLUE, PURPLE, PINK, BLACK, WHITE, NOCOLOR
 } Color;
 
+typedef enum ExtremeAi
+{
+	AI_ULTIMATE, AI_WARRIOR, AI_AGGRESSIVE_WARRIOR
+} ExtremeAi;
+
 typedef struct
 {
 	Uint32 INT[8];
@@ -111,7 +116,7 @@ typedef enum
 	DIFFICULTY_EASY = 20,
 	DIFFICULTY_NORMAL = 50,
 	DIFFICULTY_HARD = 85,
-	DIFFICULTY_EXTREME = 100
+	DIFFICULTY_EXTREME = 86
 } MainMenuDifficulty;
 typedef enum
 {	// főmenü-beli választható térképméret
@@ -224,6 +229,10 @@ extern PROGRAM_STATE *STATE_MAIN_MENU,
 
 void PROGRAM_SWITCH_STATE(PROGRAM_STATE *State); // program fő állapotának váltására szolgáló fgv.
 int randmax(int);
+
+const char* DifficultyToText(int difficulty);
+
+Color GetExtremeDifficultyColor(ExtremeAi extremeAi);
 
 SDL_Surface *IMG_Load_Optimized(char *filename);
 
