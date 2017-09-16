@@ -9,6 +9,10 @@ void STATE_VICTORY_INIT()
 	*/
 
 	int score = (1000.0 - sqrt((double)(SDL_GetTicks() - Match.STARTED))) * Match.NumberOfEnemies * MainMenu.Difficulty * MainMenu.MapSize * MainMenu.StartingResources / 1000;
+	if (DIFFICULTY_EXTREME == Match.Difficulty)
+	{
+		score += 20000;
+	}
 	char scoretxt[20]; // score -> string
 	sprintf(scoretxt, "SCORE: %d", score);
 
