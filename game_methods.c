@@ -23,32 +23,10 @@ void AI(Town *this)
 		TownSendUnit(this, target);
 }
 
-void AIExtreme(Town *this)
+static int AIHelperGetNumberOfEnemyTowns(Town* this)
 {
-	Unit *u_it;
-	Town *t_it;
-	int attacking_units_near = 0;
-	int attacking_units = 0;
-
 	int number_of_enemies_of_this_town = 0;
-	int AI_MAGIC_CLOSENESS = 10;
-	int AI_MAGIC_WEAK_POPULATION = 50;
-
-	// extra 10 azért kell, hogy ne vibráljon a kép 999 és 1000 között.
-	int AI_MAGIC_PEASANT_COUNT_FOR_RESOURCE_HEAVEN = 1010;
-
-	for (u_it = Match.UNITS_BEGIN->NEXT; u_it != Match.UNITS_END; u_it = u_it->NEXT)
-	{
-		if (u_it->Color != this->Color && u_it->TO == this)
-		{
-			++attacking_units;
-			if (u_it->ARRIVE - Application.LastRun < AI_MAGIC_CLOSENESS * SEC_TO_MS)
-			{
-				++attacking_units_near;
-			}
-		}
-	}
-
+	Town *t_it;
 	for (t_it = Match.TOWNS->NEXT; t_it != NULL; t_it = t_it->NEXT)
 	{
 		if (t_it->Color != this->Color)
@@ -57,6 +35,101 @@ void AIExtreme(Town *this)
 		}
 	}
 
+	return number_of_enemies_of_this_town;
+}
+
+static void AIHelperGetAttackingUnits(Town* this, int* attacking_units, int* attacking_units_near)
+{
+	int AI_MAGIC_CLOSENESS = 10;
+
+	Unit *u_it;
+	*attacking_units = *attacking_units_near = 0;
+	for (u_it = Match.UNITS_BEGIN->NEXT; u_it != Match.UNITS_END; u_it = u_it->NEXT)
+	{
+		if (u_it->Color != this->Color && u_it->TO == this)
+		{
+			++*attacking_units;
+			if (u_it->ARRIVE - Application.LastRun < AI_MAGIC_CLOSENESS * SEC_TO_MS)
+			{
+				++*attacking_units_near;
+			}
+		}
+	}
+}
+
+static Town* AIHelperGetAttackTarget(Town* this)
+{
+	int AI_MAGIC_WEAK_POPULATION = 50;
+	Town *t_it;
+	int enemy_population = 0;
+	for (t_it = Match.TOWNS->NEXT; t_it != NULL; t_it = t_it->NEXT)
+	{
+		if (t_it->Color != this->Color)
+		{
+			enemy_population += t_it->warriors + t_it->peasants;
+		}
+	}
+
+	// Célpont véletlen, de erősebb városoknak nagyobb az esélye, mivel fontosabb őket gyengíteni,
+	// mint a gyengéket rohamozni.
+	int target_person = randmax(enemy_population);
+	Town *target = NULL;
+	int enemy_search = 0;
+	for (t_it = Match.TOWNS->NEXT; t_it != NULL; t_it = t_it->NEXT)
+	{
+		if (t_it->Color != this->Color)
+		{
+			// Csak hogy biztos legyen célpont, akkor is,
+			// ha sehol sincs már katona és paraszt (üres ellenséges faluk esete).
+			target = t_it;
+
+			enemy_search += t_it->warriors + t_it->peasants;
+			if (enemy_search >= target_person)
+			{
+				break;
+			}
+		}
+	}
+
+	// De az sem okos, ha engedjük a gyengéket felerősödni.
+	int attack_weak = randmax(3) == 0;
+	if(attack_weak)
+	{
+		Town* weaks[AIHelperGetNumberOfEnemyTowns(this)];
+		Town** weaks_end = weaks;
+		for (t_it = Match.TOWNS->NEXT; attack_weak && t_it != NULL; t_it = t_it->NEXT)
+		{
+			if (t_it->Color == this->Color)
+			{
+				continue;
+			}
+
+			int population = t_it->peasants + t_it->warriors;
+			if (population < AI_MAGIC_WEAK_POPULATION)
+			{
+				*weaks_end = t_it;
+				++weaks_end;
+			}
+		}
+		if(weaks_end != weaks)
+		{
+			target = weaks[randmax(weaks_end-weaks)];
+		}
+	}
+
+	return target;
+}
+
+void AIExtreme(Town *this)
+{
+	int attacking_units_near = 0;
+	int attacking_units = 0;
+
+	// extra 10 azért kell, hogy ne vibráljon a kép 999 és 1000 között.
+	int AI_MAGIC_PEASANT_COUNT_FOR_RESOURCE_HEAVEN = 1010;
+
+	AIHelperGetAttackingUnits(this, &attacking_units, &attacking_units_near);
+
 	int safe_to_send_out_warriors = this->warriors >= (attacking_units_near+1) * UNIT_SIZE;
 
 	// Feltételezi, hogy készítesz új katonát.
@@ -64,60 +137,7 @@ void AIExtreme(Town *this)
 
 	if (this->warriors >= UNIT_SIZE && (safe_to_send_out_warriors || starving_warriors > 0))
 	{
-		int enemy_population = 0;
-		for (t_it = Match.TOWNS->NEXT; t_it != NULL; t_it = t_it->NEXT)
-		{
-			if (t_it->Color != this->Color)
-			{
-				enemy_population += t_it->warriors + t_it->peasants;
-			}
-		}
-		// Célpont véletlen, de erősebb városoknak nagyobb az esélye, mivel fontosabb őket gyengíteni,
-		// mint a gyengéket rohamozni.
-		int target_person = randmax(enemy_population);
-		Town *target = NULL;
-		int enemy_search = 0;
-		for (t_it = Match.TOWNS->NEXT; t_it != NULL; t_it = t_it->NEXT)
-		{
-			if (t_it->Color != this->Color)
-			{
-				// Csak hogy biztos legyen célpont, akkor is,
-				// ha sehol sincs már katona és paraszt (üres ellenséges faluk esete).
-				target = t_it;
-
-				enemy_search += t_it->warriors + t_it->peasants;
-				if (enemy_search >= target_person)
-				{
-					break;
-				}
-			}
-		}
-
-		// De az sem okos, ha engedjük a gyengéket felerősödni.
-		int attack_weak = randmax(3) == 0;
-		if(attack_weak)
-		{
-			Town* weaks[number_of_enemies_of_this_town];
-			Town** weaks_end = weaks;
-			for (t_it = Match.TOWNS->NEXT; attack_weak && t_it != NULL; t_it = t_it->NEXT)
-			{
-				if (t_it->Color == this->Color)
-				{
-					continue;
-				}
-
-				int population = t_it->peasants + t_it->warriors;
-				if (population < AI_MAGIC_WEAK_POPULATION)
-				{
-					*weaks_end = t_it;
-					++weaks_end;
-				}
-			}
-			if(weaks_end != weaks)
-			{
-				target = weaks[randmax(weaks_end-weaks)];
-			}
-		}
+		Town *target = AIHelperGetAttackTarget(this);
 		if (NULL != target)
 		{
 			TownSendUnit(this, target);
@@ -142,41 +162,18 @@ void AIExtreme(Town *this)
 
 void AIExtremeWarrior(Town *this, int is_aggressive_AI)
 {
-	Unit *u_it;
-	Town *t_it;
 	int attacking_units_near = 0;
 	int attacking_units = 0;
 	int starving_warriors = 0;
-	int number_of_enemies_of_this_town = 0;
 	int ai_magic_min_extra_peasants = 50;
-	int AI_MAGIC_CLOSENESS = 10;
-	int AI_MAGIC_WEAK_POPULATION = 50;
 
-	for (u_it = Match.UNITS_BEGIN->NEXT; u_it != Match.UNITS_END; u_it = u_it->NEXT)
-	{
-		if (u_it->Color != this->Color && u_it->TO == this)
-		{
-			++attacking_units;
-			if (u_it->ARRIVE - Application.LastRun < AI_MAGIC_CLOSENESS * SEC_TO_MS)
-			{
-				++attacking_units_near;
-			}
-		}
-	}
-
-	for (t_it = Match.TOWNS->NEXT; t_it != NULL; t_it = t_it->NEXT)
-	{
-		if (t_it->Color != this->Color)
-		{
-			++number_of_enemies_of_this_town;
-		}
-	}
+	AIHelperGetAttackingUnits(this, &attacking_units, &attacking_units_near);
 
 	starving_warriors = ((this->warriors+1) * WARRIOR_CONSUPTION_PER_MIN - this->peasants * PEASANT_PRODUCTION_PER_MIN) / WARRIOR_CONSUPTION_PER_MIN;
 
 	int town_needs_warriors_now = this->warriors < attacking_units_near * UNIT_SIZE;
 	int safe_to_send_out_warriors = this->warriors >= (attacking_units+1) * UNIT_SIZE &&
-																	this->warriors >= (number_of_enemies_of_this_town+1) * UNIT_SIZE;
+																	this->warriors >= (AIHelperGetNumberOfEnemyTowns(this)+1) * UNIT_SIZE;
 	if (is_aggressive_AI)
 	{
 	  ai_magic_min_extra_peasants = 100;
@@ -194,60 +191,7 @@ void AIExtremeWarrior(Town *this, int is_aggressive_AI)
 	}
 	else if (this->warriors >= UNIT_SIZE && (safe_to_send_out_warriors || starving_warriors > 0))
 	{
-		int enemy_population = 0;
-		for (t_it = Match.TOWNS->NEXT; t_it != NULL; t_it = t_it->NEXT)
-		{
-			if (t_it->Color != this->Color)
-			{
-				enemy_population += t_it->warriors + t_it->peasants;
-			}
-		}
-		// Célpont véletlen, de erősebb városoknak nagyobb az esélye, mivel fontosabb őket gyengíteni,
-		// mint a gyengéket rohamozni.
-		int target_person = randmax(enemy_population);
-		Town *target = NULL;
-		int enemy_search = 0;
-		for (t_it = Match.TOWNS->NEXT; t_it != NULL; t_it = t_it->NEXT)
-		{
-			if (t_it->Color != this->Color)
-			{
-				// Csak hogy biztos legyen célpont, akkor is,
-				// ha sehol sincs már katona és paraszt (üres ellenséges faluk esete).
-				target = t_it;
-
-				enemy_search += t_it->warriors + t_it->peasants;
-				if (enemy_search >= target_person)
-				{
-					break;
-				}
-			}
-		}
-
-		// De az sem okos, ha engedjük a gyengéket felerősödni.
-		int attack_weak = randmax(3) == 0;
-		if(attack_weak)
-		{
-			Town* weaks[number_of_enemies_of_this_town];
-			Town** weaks_end = weaks;
-			for (t_it = Match.TOWNS->NEXT; attack_weak && t_it != NULL; t_it = t_it->NEXT)
-			{
-				if (t_it->Color == this->Color)
-				{
-					continue;
-				}
-
-				int population = t_it->peasants + t_it->warriors;
-				if (population < AI_MAGIC_WEAK_POPULATION)
-				{
-					*weaks_end = t_it;
-					++weaks_end;
-				}
-			}
-			if(weaks_end != weaks)
-			{
-				target = weaks[randmax(weaks_end-weaks)];
-			}
-		}
+		Town* target = AIHelperGetAttackTarget(this);
 		if (NULL != target)
 		{
 			TownSendUnit(this, target);
