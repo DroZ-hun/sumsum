@@ -28,12 +28,13 @@ void AIExtreme(Town *this)
 	// TODO: újra ki kell próbálni az AI-t ha a katona paraszt erő arány kedvezőbb lesz a katonáknak.
 	Unit *u_it;
 	Town *t_it;
+	int town_id = 0;
 	int attacking_units_near = 0;
 	int attacking_units = 0;
 	int starving_warriors = 0;
 	int number_of_enemies_of_this_town = 0;
+	int ai_magic_min_extra_peasants = 50;
 	int AI_MAGIC_CLOSENESS = 10;
-	int AI_MAGIC_MIN_EXTRA_PEASANTS = 50;
 	int AI_MAGIC_WEAK_POPULATION = 50;
 
 	for (u_it = Match.UNITS_BEGIN->NEXT; u_it != Match.UNITS_END; u_it = u_it->NEXT)
@@ -48,12 +49,18 @@ void AIExtreme(Town *this)
 		}
 	}
 
+	int counter = 0;
 	for (t_it = Match.TOWNS->NEXT; t_it != NULL; t_it = t_it->NEXT)
 	{
+		if (t_it == this)
+		{
+			town_id = counter;
+		}
 		if (t_it->Color != this->Color)
 		{
 			++number_of_enemies_of_this_town;
 		}
+		++counter;
 	}
 
 	starving_warriors = ((this->warriors+1) * WARRIOR_CONSUPTION_PER_MIN - this->peasants * PEASANT_PRODUCTION_PER_MIN) / WARRIOR_CONSUPTION_PER_MIN;
@@ -61,11 +68,17 @@ void AIExtreme(Town *this)
 	int town_needs_warriors_now = this->warriors < attacking_units_near * UNIT_SIZE;
 	int safe_to_send_out_warriors = this->warriors >= (attacking_units+1) * UNIT_SIZE &&
 																	this->warriors >= (number_of_enemies_of_this_town+1) * UNIT_SIZE;
+  int is_aggressive_AI = town_id % 2 == 0;
+	if (is_aggressive_AI)
+	{
+	  ai_magic_min_extra_peasants = 100;
+		safe_to_send_out_warriors = this->warriors >= (attacking_units_near+1) * UNIT_SIZE;
+	}
 
 	// Erőforrások még nagy ütemben jönni fognak.
 	int safe_to_create_warriors =
 				15 * (this->warriors+1) * WARRIOR_CONSUPTION_PER_MIN < (this->peasants-1) * PEASANT_PRODUCTION_PER_MIN &&
-				(this->peasants-1) * PEASANT_PRODUCTION_PER_MIN - ((this->warriors+1) * WARRIOR_CONSUPTION_PER_MIN) >= AI_MAGIC_MIN_EXTRA_PEASANTS * PEASANT_PRODUCTION_PER_MIN;
+				(this->peasants-1) * PEASANT_PRODUCTION_PER_MIN - ((this->warriors+1) * WARRIOR_CONSUPTION_PER_MIN) >= ai_magic_min_extra_peasants * PEASANT_PRODUCTION_PER_MIN;
 
 	if (starving_warriors <= 0 && (town_needs_warriors_now || safe_to_create_warriors))
 	{
