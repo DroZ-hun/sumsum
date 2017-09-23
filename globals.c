@@ -43,6 +43,9 @@ const char* DifficultyToText(int difficulty)
 {
 	switch(difficulty)
 	{
+		case DIFFICULTY_EXTREME_WAR:
+			return "< extreme war >";
+			break;
 		case DIFFICULTY_EXTREME:
 			return "< extreme >";
 			break;

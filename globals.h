@@ -116,7 +116,8 @@ typedef enum
 	DIFFICULTY_EASY = 20,
 	DIFFICULTY_NORMAL = 50,
 	DIFFICULTY_HARD = 85,
-	DIFFICULTY_EXTREME = 86
+	DIFFICULTY_EXTREME = 86,
+	DIFFICULTY_EXTREME_WAR = 150
 } MainMenuDifficulty;
 typedef enum
 {	// főmenü-beli választható térképméret

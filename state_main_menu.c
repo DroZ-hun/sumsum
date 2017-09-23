@@ -277,6 +277,9 @@ void STATE_MAIN_MENU_LOOP()
 
 								if (MainMenu.Difficulty == DIFFICULTY_EXTREME)
 									MainMenu.Difficulty = DIFFICULTY_HARD;
+
+								if (MainMenu.Difficulty == DIFFICULTY_EXTREME_WAR)
+									MainMenu.Difficulty = DIFFICULTY_EXTREME;
 							break;
 
 							case STATE_MAIN_MENU_MAP_SIZE:
@@ -313,6 +316,9 @@ void STATE_MAIN_MENU_LOOP()
 							break;
 
 							case STATE_MAIN_MENU_DIFFICULTY:
+								if (MainMenu.Difficulty == DIFFICULTY_EXTREME)
+									MainMenu.Difficulty = DIFFICULTY_EXTREME_WAR;
+
 								if (MainMenu.Difficulty == DIFFICULTY_HARD)
 									MainMenu.Difficulty = DIFFICULTY_EXTREME;
 

@@ -9,7 +9,7 @@ void STATE_VICTORY_INIT()
 	*/
 
 	int score = (1000.0 - sqrt((double)(SDL_GetTicks() - Match.STARTED))) * Match.NumberOfEnemies * MainMenu.Difficulty * MainMenu.MapSize * MainMenu.StartingResources / 1000;
-	if (DIFFICULTY_EXTREME == Match.Difficulty)
+	if (Match.Difficulty >= DIFFICULTY_EXTREME)
 	{
 		score += 20000;
 	}
