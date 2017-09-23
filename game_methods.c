@@ -4,6 +4,30 @@
 #include "globals.h"
 #include "game_methods.h"
 
+void AIProxy(int difficulty, Town* town)
+{
+	if (difficulty == DIFFICULTY_EXTREME_WAR)
+	{
+		AIExtreme(town);
+	}
+	else if (difficulty == DIFFICULTY_EXTREME && town->Color == GetExtremeDifficultyColor(AI_ULTIMATE))
+	{
+		AIExtreme(town);
+	}
+	else if (difficulty == DIFFICULTY_EXTREME && town->Color == GetExtremeDifficultyColor(AI_WARRIOR))
+	{
+		AIExtremeWarrior(town, 0);
+	}
+	else if (difficulty == DIFFICULTY_EXTREME && town->Color == GetExtremeDifficultyColor(AI_AGGRESSIVE_WARRIOR))
+	{
+		AIExtremeWarrior(town, 1);
+	}
+	else
+	{
+		AI(town);
+	}
+}
+
 void AI(Town *this)
 {
 	if (randmax(Application.LPS_CAP) > 10)

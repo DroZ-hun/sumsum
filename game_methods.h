@@ -12,8 +12,8 @@ int CheckPlayerVictory();
 
 int CheckPlayerDefeat();
 
+void AIProxy(int difficulty, Town* town);
 void AI(Town *this);
-
 void AIExtreme(Town *this);
 void AIExtremeWarrior(Town *this, int is_aggressive_AI);
 

@@ -487,26 +487,7 @@ void STATE_PLAYING_LOOP()
 	{
 		if (t_it->Color != Match.PlayerColor)
 		{
-			if (Match.Difficulty == DIFFICULTY_EXTREME_WAR)
-			{
-				AIExtreme(t_it);
-			}
-			else if (Match.Difficulty == DIFFICULTY_EXTREME && t_it->Color == GetExtremeDifficultyColor(AI_ULTIMATE))
-			{
-				AIExtreme(t_it);
-			}
-			else if (Match.Difficulty == DIFFICULTY_EXTREME && t_it->Color == GetExtremeDifficultyColor(AI_WARRIOR))
-			{
-				AIExtremeWarrior(t_it, 0);
-			}
-			else if (Match.Difficulty == DIFFICULTY_EXTREME && t_it->Color == GetExtremeDifficultyColor(AI_AGGRESSIVE_WARRIOR))
-			{
-				AIExtremeWarrior(t_it, 1);
-			}
-			else
-			{
-				AI(t_it);
-			}
+			AIProxy(Match.Difficulty, t_it);
 		}
 	}
 
